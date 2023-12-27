@@ -1,5 +1,4 @@
-FROM scratch
-# Copy our static executable.
+# FROM scratch
+FROM alpine
 COPY green-button /bin/green-button
-# Run the hello binary.
 ENTRYPOINT ["/bin/green-button"]

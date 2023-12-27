@@ -1,6 +1,8 @@
 package main
 
 import (
+	"crypto/tls"
+	"crypto/x509"
 	"fmt"
 	"time"
 
@@ -13,6 +15,7 @@ type alectra struct {
 	UrlAlectra    string
 	InfluxAddress string
 	InfluxPass    string
+	RootCAs       string
 }
 
 var alectraConfig alectra
@@ -34,8 +37,20 @@ func main() {
 		panic(fmt.Errorf("fatal error config file: %w", err))
 	}
 
+	pool := x509.NewCertPool()
+	if ok := pool.AppendCertsFromPEM([]byte(alectraConfig.RootCAs)); !ok {
+		panic(fmt.Errorf("fatal error loading root certificates"))
+	}
+
+	tlsConfig := &tls.Config{
+		RootCAs: pool,
+	}
+
+	// defaultTransport := http.DefaultTransport.(*http.Transport)
+	// defaultTransport.TLSClientConfig = newTlsConfig
+
 	for {
-		_, err = alectraScrape()
+		_, err = alectraScrape(tlsConfig)
 		if err != nil {
 			fmt.Printf("Alectra failed: %s", err)
 		}

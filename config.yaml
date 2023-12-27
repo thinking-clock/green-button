@@ -4,3 +4,10 @@ alectra:
   urlAlectra: "https://myaccount.alectrautilities.com"
   influxAddress: "https://influx.host:8086"
   influxPass: "influx_api_key=="
+  rootCAs: |
+    -----BEGIN CERTIFICATE-----
+    CERTIFICATE==
+    -----END CERTIFICATE-----
+    -----BEGIN CERTIFICATE-----
+    CERTIFICATE==
+    -----END CERTIFICATE-----

@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"crypto/tls"
 	"encoding/json"
 	"encoding/xml"
 	"fmt"
@@ -23,7 +24,7 @@ var (
 	alectraLogger  = log.WithField("Alectra", nil)
 )
 
-func alectraScrape() (string, error) {
+func alectraScrape(tlsConfig *tls.Config) (string, error) {
 	jar, err := cookiejar.New(nil)
 	if err != nil {
 		return "", err
@@ -31,6 +32,9 @@ func alectraScrape() (string, error) {
 
 	client := &http.Client{
 		Jar: jar,
+		Transport: &http.Transport{
+			TLSClientConfig: tlsConfig,
+		},
 	}
 
 	err = alectraLogin(client)
@@ -53,15 +57,18 @@ func alectraScrape() (string, error) {
 		return "", err
 	}
 
-	importInfluxDB(readings)
+	importInfluxDB(tlsConfig, readings)
 
 	return "", nil
 }
 
-func importInfluxDB(readings []IntervalReading) {
+func importInfluxDB(tlsConfig *tls.Config, readings []IntervalReading) {
 	// Create a client
 	// You can generate an API Token from the "API Tokens Tab" in the UI
-	client := influxdb2.NewClient(alectraConfig.InfluxAddress, alectraConfig.InfluxPass)
+	client := influxdb2.NewClientWithOptions(alectraConfig.InfluxAddress, alectraConfig.InfluxPass,
+		influxdb2.DefaultOptions().
+			SetUseGZip(true).
+			SetTLSConfig(tlsConfig))
 	// always close client at the end
 	defer client.Close()
 
@@ -253,7 +260,8 @@ func alectraKey(client *http.Client) (string, error) {
 
 	currentTime := time.Now()
 	// beforeTime := currentTime.Add(time.Duration(-1*24*30*12) * time.Hour)
-	beforeTime := currentTime.Add(time.Duration(-200) * Day) //
+	// beforeTime := currentTime.Add(time.Duration(-200) * Day) //
+	beforeTime := currentTime.Add(time.Duration(-2) * Day)
 
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 	req.URL.RawQuery = url.Values{
