@@ -1,0 +1,6 @@
+alectra:
+  userID: "alectra@alectra.ca"
+  password: "aclectrapassword"
+  urlAlectra: "https://myaccount.alectrautilities.com"
+  influxAddress: "https://influx.host:8086"
+  influxPass: "influx_api_key=="
