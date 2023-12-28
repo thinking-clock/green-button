@@ -62,7 +62,10 @@ jobs:
       - name: Install dependencies
         run: go get .
       - name: Build
-        run: GOOS=linux go build -ldflags="-w -s" -v ./...
+        run: go build -ldflags='-w -s -extldflags "-static"' -v ./...
+        env:
+          GOOS: linux
+          CGO_ENABLED: 0
 
       # Build and push Docker image with Buildx (don't push on PR)
       # https://github.com/docker/build-push-action
