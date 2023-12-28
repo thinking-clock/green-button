@@ -62,7 +62,7 @@ jobs:
       - name: Install dependencies
         run: go get .
       - name: Build
-        run: go build -v ./...
+        run: GOOS=linux go build -ldflags="-w -s" -v ./...
 
       # Build and push Docker image with Buildx (don't push on PR)
       # https://github.com/docker/build-push-action

@@ -78,30 +78,14 @@ func importInfluxDB(tlsConfig *tls.Config, readings []IntervalReading) {
 	for _, reading := range readings {
 		_ = reading
 		p := influxdb2.NewPointWithMeasurement("meter").
-			//AddTag("unit", "temperature").
 			AddField("cost", reading.Cost).
 			AddField("energy", reading.Value).
 			AddField("duration", int32(time.Duration(reading.TimePeriod.Duration).Seconds())).
-			SetTime(time.Time(reading.TimePeriod.Start)) //time.Now())
-		// write point asynchronously
+			SetTime(time.Time(reading.TimePeriod.Start))
 		writeAPI.WritePoint(p)
 	}
-	// p := influxdb2.NewPoint("stat",
-	// 	map[string]string{"unit": "temperature"},
-	// 	map[string]interface{}{"avg": 24.5, "max": 45},
-	// 	time.Now())
-	// // write point asynchronously
-	// writeAPI.WritePoint(p)
-	// // create point using fluent style
-	// p = influxdb2.NewPointWithMeasurement("stat").
-	// 	AddTag("unit", "temperature").
-	// 	AddField("avg", 23.2).
-	// 	AddField("max", 45).
-	// 	SetTime(time.Now())
-	// // write point asynchronously
-	// writeAPI.WritePoint(p)
-	// Flush writes
 	writeAPI.Flush()
+	alectraLogger.Infof("Uploaded data to influxDB")
 }
 
 type EspiDuration time.Duration
@@ -109,17 +93,11 @@ type EspiDuration time.Duration
 func (a *EspiDuration) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 	var s int64
 	if err := d.DecodeElement(&s, &start); err != nil {
-		log.Infof("VP was here >> %s", err)
 		return err
 	}
 	*a = EspiDuration(s) * EspiDuration(time.Second)
 	return nil
 }
-
-// func (a EspiDuration) MarshalJSON() ([]byte, error) {
-// 	//return []byte(time.Duration(a).String()), nil
-// 	return time.Duration(a).MarshalJSON()
-// }
 
 type EspiTime time.Time
 
@@ -134,7 +112,6 @@ func (a *EspiTime) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 }
 
 func (a EspiTime) MarshalJSON() ([]byte, error) {
-	//return []byte(time.Time(a).String()), nil
 	return time.Time(a).MarshalJSON()
 }
 
@@ -154,7 +131,6 @@ func alectraParseXML(greenButtonXML []byte) ([]IntervalReading, error) {
 	doc, err := xmlquery.Parse(bytes.NewReader(greenButtonXML))
 	if err != nil {
 		return nil, err
-		//panic(err)
 	}
 
 	readings := make([]IntervalReading, 0)
@@ -170,7 +146,6 @@ func alectraParseXML(greenButtonXML []byte) ([]IntervalReading, error) {
 			continue
 		}
 		readings = append(readings, reading)
-		//fmt.Printf("#%d %s\n", i, n.OutputXML(true))
 	}
 
 	b, _ := json.MarshalIndent(readings, "   ", "   ")
@@ -197,14 +172,12 @@ func alectraXML(client *http.Client, downloadKey string) ([]byte, error) {
 	}
 
 	alectraLogger.Infof("Downloaded XML")
-	//fmt.Println(string(body))
 
 	return body, nil
 }
 
 func alectraLogin(client *http.Client) error {
 	urlLogin := alectraConfig.UrlAlectra + "/app/capricorn" //?para=index"
-	//urlKey := urlAlectra + "/app/capricorn?para=greenButtonDownload"
 
 	req, err := http.NewRequest("POST", urlLogin, nil)
 	if err != nil {
@@ -243,11 +216,6 @@ func alectraLogin(client *http.Client) error {
 	alectraLogger.Infof("Login Success")
 	return nil
 }
-
-// fmt.Println(res.Cookies())
-// fmt.Printf("Status code %d\n", res.StatusCode)
-// _ = body
-// fmt.Println(string(body))
 
 const Day = time.Hour * time.Duration(24)
 

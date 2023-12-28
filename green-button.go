@@ -46,14 +46,13 @@ func main() {
 		RootCAs: pool,
 	}
 
-	// defaultTransport := http.DefaultTransport.(*http.Transport)
-	// defaultTransport.TLSClientConfig = newTlsConfig
-
 	for {
 		_, err = alectraScrape(tlsConfig)
 		if err != nil {
 			fmt.Printf("Alectra failed: %s", err)
 		}
-		time.Sleep(6 * time.Hour)
+		sleep := 6 * time.Hour
+		fmt.Printf("Sleeping for %s\n", sleep)
+		time.Sleep(sleep)
 	}
 }
